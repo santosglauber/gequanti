@@ -36,8 +36,8 @@ names(dt) # apresenta nomes das variáveis
 
 
 # Organizacao de dados ----------------------------------------------------
-dt[Via=="Aéreo"] # selecionar linhas com valores específicos
-dt_aereo <- dt[Via=="Aéreo"] # salvar objeto da seleção
+dt[Via=="Aérea"] # selecionar linhas com valores específicos
+dt_aereo <- dt[Via=="Aérea"] # salvar objeto da seleção
 dt[, .(Continente, Chegadas)] # seleciona colunas
 dt[, -c("Continente")] # seleciona todas as colunas, exceto as indicadas
 dt[Continente=="Oceania", .(País, Chegadas)] # seleciona linhas e colunas
@@ -46,8 +46,9 @@ dt[Continente=="Oceania", .(País, Chegadas)] # seleciona linhas e colunas
 # Tabelas de contingência -------------------------------------------------
 table(dt$Continente) # tabela de contagem simples
 table(dt$Continente, dt$Via) # tabela de contagem cruzada
-prop.table(table(dt$Continente, dt$Via), 1) # tabela de contingência com 100% nas linhas. Note que o atual banco de dados tem 3 linhas para cada país.
-prop.table(table(dt$Continente, dt$Via), 2) # tabela de contingência com 100% nas colunas
+t <- table(dt$Continente, dt$Via) # salvando a tabela de contagem cruzada
+prop.table(t, 1) # tabela de contingência com 100% nas linhas. Note que o atual banco de dados tem 3 linhas para cada país.
+prop.table(t, 2) # tabela de contingência com 100% nas colunas
 
 
 # Medidas de resumo -------------------------------------------------------
