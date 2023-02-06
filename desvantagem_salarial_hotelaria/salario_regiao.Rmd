@@ -25,7 +25,7 @@ Para baixar os dados de forma fácil e direta, vamos utilizar o pacote `sidrar`.
 ```{r}
 library(sidrar)
 
-empregos <- get_sidra(api = "/t/6450/n6/all/v/662,708/p/2019/c12762/117546,117897/d/v662%200")
+empregos <- get_sidra(api ="/t/6450/n6/all/v/662,708/p/2019/c12762/117546,117897/d/v662%200")
 
 head(empregos, 10)
 ```
@@ -35,10 +35,12 @@ Note que cada município consta em quatro linhas diferentes e todos os valores e
 ```{r, warning=FALSE}
 library(tidyverse)
 
-empregos <- pivot_wider(empregos,
-                         names_from = c("Classificação Nacional de Atividades Econômicas (CNAE 2.0)", "Variável"),
-                         values_from = Valor,
-                         id_cols = c("Município (Código)", "Município"))
+empregos <- 
+  pivot_wider(empregos,
+              names_from = 
+                c("Classificação Nacional de Atividades Econômicas (CNAE 2.0)", "Variável"),
+              values_from = Valor,
+              id_cols = c("Município (Código)", "Município"))
 
 head(empregos)
 ```
@@ -48,9 +50,13 @@ Agora temos uma tabela no formato desejado. Note que apenas as colunas relevante
 Em seguida, vamos calcular o salário médio na hotelaria e na economia como um todo para cada município do país. Nos municípios em que não há registro de empregados no setor hoteleiro, o número de empregados e a massa salarial constam como `NA` (não disponível). O resultado do cálculo do salário médio nesses casos também será `NA`. Após o cálculo dos salários médios, vamos calcular a diferença salarial percentual.
 
 ```{r}
-empregos$salmed_hotel <- empregos$`55.10-8 Hotéis e similares_Salários e outras remunerações` / empregos$`55.10-8 Hotéis e similares_Pessoal ocupado assalariado`
+empregos$salmed_hotel <- 
+  empregos$`55.10-8 Hotéis e similares_Salários e outras remunerações` / 
+  empregos$`55.10-8 Hotéis e similares_Pessoal ocupado assalariado`
 
-empregos$salmed_geral <- empregos$`Total_Salários e outras remunerações` / empregos$`Total_Pessoal ocupado assalariado`
+empregos$salmed_geral <- 
+  empregos$`Total_Salários e outras remunerações` / 
+  empregos$`Total_Pessoal ocupado assalariado`
 
 empregos$diferenca_salarial <- empregos$salmed_hotel/empregos$salmed_geral-1
 
