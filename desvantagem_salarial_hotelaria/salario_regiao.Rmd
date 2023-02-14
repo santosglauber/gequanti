@@ -20,33 +20,7 @@ Para analisar a variação regional da desvantagem salarial dos hoteleiros por r
 
 O salário médio na hotelaria e na economia como um todo será computado a partir de dados do relatório de [Estatísticas do Cadastro Central de Empresas (CEMPRE)] (https://www.ibge.gov.br/estatisticas/economicas/comercio/9016-estatisticas-do-cadastro-central-de-empresas.html) do IBGE. Os dados do número de empregados e a massa salarial de cada município brasileiro por atividade econômica podem ser baixados através da [Tabela 6450](https://sidra.ibge.gov.br/tabela/6450) do banco de dados [SIDRA](https://sidra.ibge.gov.br/) do IBGE. 
 
-Para baixar os dados de forma fácil e direta, vamos utilizar o pacote `sidrar`. Para instalar esse pacote, utilize o comando `install.packages("sidrar")`. Uma vez instalado, carregue o pacote com o comando `library(sidrar)`. Depois, execute o comando `get_sidra`. O parâmetro para utilizado nessa função pode ser obtido diretamente no site do SIDRA. Na [Tabela 6450](https://sidra.ibge.gov.br/tabela/6450), selecione as variáveis **Pessoal ocupado assalariado** e **Salários e outras remunerações**, a atividade econômica **55.10-8 Hotéis e similares**, bem como o **Total** das atividades econômicas, o ano de **2019** e **todos os municípios** do país em unidade territorial. O ano de 2019 foi selecionado por ser o mais recente representativo de um momento de não pandemia. Ao invés de clicar em visualizar, selecione o botão **links de compartilhar** na parte inferior da página. Em seguida, copie o conteúdo de **Parâmetros para a API** a partir do trecho `\t\`. O download pode demorar alguns segundos. Uma vez baixados os dados, vamos dar uma olhada no resultado da importação utilizando o comando `head`.
-
-```{r}
-library(sidrar)
-
-empregos <- get_sidra(api ="/t/6450/n6/all/v/662,708/p/2019/c12762/117546,117897/d/v662%200")
-
-head(empregos, 10)
-```
-Note que cada município consta em quatro linhas diferentes e todos os valores estão na mesma variável intitulada "Valor". Veja que o objeto "empregos" tem 22280 linhas, mas o Brasil tem apenas 5570 municípios. Cada linha se refere a uma combinação de número de empregados ou massa salarial (Variável) e hotelaria ou economia como um todo (Classificação CNAE). Para calcular os salários médios e a diferença salarial dos hoteleiros, é conveniente que os quatro valores estejam em variáveis separadas e que cada município conste em apenas uma linha. Vamos fazer isso utilizando o comando `pivot_wider`. Antes disso, temos que carregar o pacote `tidyverse`. Se você ainda não tem esse pacote instalado, utilize o comando `install.packages`.
-
-```{r, warning=FALSE}
-library(tidyverse)
-
-empregos <- 
-  pivot_wider(empregos,
-              names_from = 
-                c("Classificação Nacional de Atividades Econômicas (CNAE 2.0)", "Variável"),
-              values_from = Valor,
-              id_cols = c("Município (Código)", "Município"))
-
-head(empregos)
-```
-
-Agora temos uma tabela no formato desejado. Note que apenas as colunas relevantes da tabela foram mantidas, sendo as demais descartadas em meio ao uso do comando `pivot_wider`. Note também que agora a tabela empregos passou a ter 5570 linhas, o que equivale ao número de municípios do país.
-
-Alternativamente, ao invés de baixar os dados com o comando `get_sidra`, você pode exportar a tabela do Sidra para o formato .csv (BR), salvá-la na pasta do seu projeto e importá-la. Na definição das colunas, coloque **Ano**, **Variável** e **Classificação Nacional de Atividades**, e nas linhas coloque **Unidade Territorial**.
+Vamos baixar os dados do Sidra do IBGE. Na [Tabela 6450](https://sidra.ibge.gov.br/tabela/6450), selecione as variáveis **Pessoal ocupado assalariado** e **Salários e outras remunerações**, a atividade econômica **55.10-8 Hotéis e similares**, bem como o **Total** das atividades econômicas, o ano de **2019** e **todos os municípios** do país em unidade territorial. Na definição das colunas, coloque **Ano**, **Variável** e **Classificação Nacional de Atividades**, e nas linhas coloque **Unidade Territorial**. O ano de 2019 foi selecionado por ser o mais recente representativo de um momento de não pandemia. Exporte a tabela do Sidra para o formato .csv (BR), salve na pasta do seu projeto e importe. 
 ```{r}
 empregos <- read.csv("tabela6450.csv", skip=4, sep = ";")
 empregos <- empregos[1:5570,]
