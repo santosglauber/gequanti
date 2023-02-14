@@ -11,7 +11,7 @@ knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 rm(list=ls())
 ```
 
-Este exercício busca analisar a diferença entre o salário médio na hotelaria e nas demais atividades produtivas. Em geral, a remuneração na hotelaria é mais baixa do que no restante da economia. Contudo, a diferença salarial não é homogênea no espaço, sendo mais acentuada em alguns lugares ou regiões.
+Este exercício busca analisar a diferença entre o salário médio na hotelaria e nas demais atividades produtivas. Em geral, a remuneração na hotelaria é mais baixa do que nas demais atividades da economia. Contudo, essa desvantagem salarial não é homogênea no espaço, sendo mais acentuada em alguns lugares ou regiões.
 
 Para analisar a variação regional da desvantagem salarial dos hoteleiros por região, iremos utilizar dados sobre a remuneração média dos trabalhadores da hotelaria e das demais atividades produtivas por município do Brasil. Compararemos a desvantagem salarial dos hoteleiros nos municípios das regiões Sul e Sudeste do Brasil (mais ricas) com aquela observada nos municípios das demais regiões do país. A ideia é entender se a desvantagem salarial dos hoteleiros é ainda maior nas regiões mais pobres do país.
 
@@ -20,7 +20,7 @@ Para analisar a variação regional da desvantagem salarial dos hoteleiros por r
 
 O salário médio na hotelaria e na economia como um todo será computado a partir de dados do relatório de [Estatísticas do Cadastro Central de Empresas (CEMPRE)] (https://www.ibge.gov.br/estatisticas/economicas/comercio/9016-estatisticas-do-cadastro-central-de-empresas.html) do IBGE. Os dados do número de empregados e a massa salarial de cada município brasileiro por atividade econômica podem ser baixados através da [Tabela 6450](https://sidra.ibge.gov.br/tabela/6450) do banco de dados [SIDRA](https://sidra.ibge.gov.br/) do IBGE. 
 
-Para baixar os dados de forma fácil e direta, vamos utilizar o pacote `sidrar`. Para instalar esse pacote, utilize o comando `install.packages("sidrar")`. Depois, execute o comando `get_sidra`. O parâmetro para utilizado nessa função pode ser obtido diretamente no site do SIDRA. Na [Tabela 6450](https://sidra.ibge.gov.br/tabela/6450), selecione as variáveis **Pessoal ocupado assalariado** e **Salários e outras remunerações**, a atividade econômica **55.10-8 Hotéis e similares**, bem como o **Total** das atividades econômicas, o ano de **2019** e **todos os municípios** do país em unidade territorial. O ano de 2019 foi selecionado por ser o mais recente representativo de um momento de não pandemia. Ao invés de clicar em visualizar, vamos selecionar o botão **links de compartilhar** na parte inferior da página. Em seguida, copie o conteúdo de **Parâmetros para a API** a partir do trecho `\t\`. O download pode demorar alguns segundos. Uma vez baixados os dados, vamos dar uma olhada no resultado da importação utilizando o comando `head`.
+Para baixar os dados de forma fácil e direta, vamos utilizar o pacote `sidrar`. Para instalar esse pacote, utilize o comando `install.packages("sidrar")`. Uma vez instalado, carregue o pacote com o comando `library(sidrar)`. Depois, execute o comando `get_sidra`. O parâmetro para utilizado nessa função pode ser obtido diretamente no site do SIDRA. Na [Tabela 6450](https://sidra.ibge.gov.br/tabela/6450), selecione as variáveis **Pessoal ocupado assalariado** e **Salários e outras remunerações**, a atividade econômica **55.10-8 Hotéis e similares**, bem como o **Total** das atividades econômicas, o ano de **2019** e **todos os municípios** do país em unidade territorial. O ano de 2019 foi selecionado por ser o mais recente representativo de um momento de não pandemia. Ao invés de clicar em visualizar, selecione o botão **links de compartilhar** na parte inferior da página. Em seguida, copie o conteúdo de **Parâmetros para a API** a partir do trecho `\t\`. O download pode demorar alguns segundos. Uma vez baixados os dados, vamos dar uma olhada no resultado da importação utilizando o comando `head`.
 
 ```{r}
 library(sidrar)
@@ -29,7 +29,6 @@ empregos <- get_sidra(api ="/t/6450/n6/all/v/662,708/p/2019/c12762/117546,117897
 
 head(empregos, 10)
 ```
-
 Note que cada município consta em quatro linhas diferentes e todos os valores estão na mesma variável intitulada "Valor". Veja que o objeto "empregos" tem 22280 linhas, mas o Brasil tem apenas 5570 municípios. Cada linha se refere a uma combinação de número de empregados ou massa salarial (Variável) e hotelaria ou economia como um todo (Classificação CNAE). Para calcular os salários médios e a diferença salarial dos hoteleiros, é conveniente que os quatro valores estejam em variáveis separadas e que cada município conste em apenas uma linha. Vamos fazer isso utilizando o comando `pivot_wider`. Antes disso, temos que carregar o pacote `tidyverse`. Se você ainda não tem esse pacote instalado, utilize o comando `install.packages`.
 
 ```{r, warning=FALSE}
@@ -46,6 +45,27 @@ head(empregos)
 ```
 
 Agora temos uma tabela no formato desejado. Note que apenas as colunas relevantes da tabela foram mantidas, sendo as demais descartadas em meio ao uso do comando `pivot_wider`. Note também que agora a tabela empregos passou a ter 5570 linhas, o que equivale ao número de municípios do país.
+
+Alternativamente, ao invés de baixar os dados com o comando `get_sidra`, você pode exportar a tabela do Sidra para o formato .csv (BR), salvá-la na pasta do seu projeto e importá-la. Na definição das colunas, coloque **Ano**, **Variável** e **Classificação Nacional de Atividades**, e nas linhas coloque **Unidade Territorial**.
+```{r}
+empregos <- read.csv("tabela6450.csv", skip=4, sep = ";")
+empregos <- empregos[1:5570,]
+
+head(empregos)
+
+names(empregos) <- c(
+"Município (Código)",
+"Município",
+"Total_Pessoal ocupado assalariado",
+"55.10-8 Hotéis e similares_Pessoal ocupado assalariado",
+"Total_Salários e outras remunerações",
+"55.10-8 Hotéis e similares_Salários e outras remunerações")
+
+empregos[empregos=="-"] <- NA
+empregos[empregos=="X"] <- NA
+empregos <- type.convert(empregos)
+```
+
 
 Em seguida, vamos calcular o salário médio na hotelaria e na economia como um todo para cada município do país. Nos municípios em que não há registro de empregados no setor hoteleiro, o número de empregados e a massa salarial constam como `NA` (não disponível). O resultado do cálculo do salário médio nesses casos também será `NA`. Após o cálculo dos salários médios, vamos calcular a diferença salarial percentual.
 
@@ -99,11 +119,11 @@ boxplot(diferenca_salarial ~ sulsudeste, data = empregos)
 
 Os dados observados revelam uma realidade concreta, permitindo-nos elaborar um enunciado particular. Contudo, na ciência, geralmente estamos interessados em enunciados gerais. A partir da análise concreta, não podemos saber se a desvantagem salarial é menor nas regiões Sul e Sudeste em razão de uma simples distribuição aleatória de valores entre municípios, ou se efetivamente podemos atribuir essa diferença à região. Para afirmar que a diferença é devida à região, temos que comparar a diferença de médias com aquela que seria esperada se as realidades municipais fossem aleatoriamente distribuídas no país. Em outras palavras, vamos testar a hipótese:
 
-H1: A desvantagem salarial dos hoteleiros é menor nas regiões mais ricas do que nas regiões mais pobres.
+H1: A desvantagem salarial dos hoteleiros é maior nas regiões mais probres do que nas regiões mais ricas.
 
 A hipótese nula referente a H1 pode ser redigida como:
 
-H0: A desvantagem salarial dos hoteleiros é a mesma nas regiões mais ricas e nas regiões mais pobres.
+H0: A desvantagem salarial dos hoteleiros é a mesma nas regiões mais pobres e nas regiões mais ricas.
 
 Para tanto, vamos começar testando a normalidade da distribuição de municípios segundo o valor da desvantagem salarial de hoteleiros.
 
